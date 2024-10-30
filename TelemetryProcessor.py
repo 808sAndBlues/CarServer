@@ -3,8 +3,11 @@ from enum import IntEnum
 DATA_LENGTH_IDX: int = 1
 DATA_TLM_ID_IDX: int = 2
 
+U32_LEN: int         = 4
+
 class TelemetryEnum(IntEnum):
-    GPIO_STATUS = 0x00
+    GPIO_STATUS = 0x00,
+    TIME_STATUS = 0x01
 
 
 class GPIOStatus:
@@ -55,13 +58,26 @@ class GPIOStatus:
 
         print()
 
+class TimeStatus:
+    def __init__(self, data):
+        self._data = data
+        self._elapsed_time = 0
+
+        self.update_time_status(self._data)
+
+    def update_time_status(self, data):
+        self._elapsed_time = int.from_bytes(data[0: U32_LEN], "big")
+
+        print("Elapsed time: ", self._elapsed_time)
+
 
 class TelemetryProcessor:
 
     def __init__(self):
         self._handler_map = \
                 {
-                    TelemetryEnum.GPIO_STATUS: self.process_gpio_status
+                    TelemetryEnum.GPIO_STATUS: self.process_gpio_status,
+                    TelemetryEnum.TIME_STATUS: self.process_time_status
                 }
 
 
@@ -78,6 +94,7 @@ class TelemetryProcessor:
         else:
             print("TelemetryProcessor: Received invalid data length")
 
+
     def process_gpio_status(self, data):
         data_len = data[DATA_LENGTH_IDX]
         tlm_id = data[DATA_TLM_ID_IDX]
@@ -85,6 +102,13 @@ class TelemetryProcessor:
         print("TelemetryProcessor: Received TLM w/ ID of: ", tlm_id)
         
         GPIOStatus(data[DATA_TLM_ID_IDX + 1: -1])
+
+    def process_time_status(self, data):
+        tlm_id = data[DATA_TLM_ID_IDX]
+
+        print("TelemetryProcessor: Received TLM w/ ID of: ", tlm_id)
+
+        TimeStatus(data[DATA_TLM_ID_IDX + 1: -1])
 
 
     def handle_tlm(self, data):
