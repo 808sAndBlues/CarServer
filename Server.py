@@ -4,6 +4,7 @@ import select
 import os
 
 from SignalHandler import SignalHandler
+from TelemetryProcessor import TelemetryProcessor
 
 class Server(threading.Thread):
     def __init__(self, port: int, address: str, sig_handler: SignalHandler):
@@ -13,6 +14,7 @@ class Server(threading.Thread):
         self._addr: str = address
         self._sock: socket.socket = None
         self._epoll: select.epoll = select.epoll()
+        self._tlm_processor: TelemetryProcessor = TelemetryProcessor()
 
         self._sig_handler: SignalHandler = sig_handler
 
@@ -38,6 +40,9 @@ class Server(threading.Thread):
             print("Server: Received data from: ", addr)
             print(data)
             print()
+
+            self._tlm_processor.process_data(data)
+
 
         elif fileno == self._sig_handler.get_fileno():
             os.eventfd_read(fileno)
