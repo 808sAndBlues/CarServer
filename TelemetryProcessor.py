@@ -46,11 +46,9 @@ class GPIOStatus:
         self.update_status()
 
     def update_status(self):
-        sorted_map = sorted(self._map)
-        
         idx = 0
         
-        for key in sorted_map:
+        for key in self._map.keys():
             self._map[key] = self._data[idx]
             idx += 1
         
@@ -83,6 +81,7 @@ class TelemetryProcessor:
 
     def process_data(self, data):
         if len(data) > 0:
+            print("LENGTH: ", len(data))
             if self.is_valid_tlm(data):
                 self.handle_tlm(data) 
 
