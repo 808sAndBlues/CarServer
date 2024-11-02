@@ -7,7 +7,24 @@ U32_LEN: int         = 4
 
 class TelemetryEnum(IntEnum):
     GPIO_STATUS = 0x00,
-    TIME_STATUS = 0x01
+    TIME_STATUS = 0x01,
+    MOTOR_STATUS = 0x02,
+    PWM_STATUS = 0x03
+
+class MotorStatus:
+    def __init__(self, data):
+        self._data = data
+        self.update_status()
+
+    def update_status(self):
+        print("MOTOR DATA: ", self._data)
+        print("Motor A Status: ", self._data[0])
+        print("Motor A Running State: ", self._data[1])
+        print()
+
+        print("Motor B Status: ", self._data[2])
+        print("Motor A Running State: ", self._data[3])
+        print()
 
 
 class GPIOStatus:
@@ -75,23 +92,29 @@ class TelemetryProcessor:
         self._handler_map = \
                 {
                     TelemetryEnum.GPIO_STATUS: self.process_gpio_status,
-                    TelemetryEnum.TIME_STATUS: self.process_time_status
+                    TelemetryEnum.TIME_STATUS: self.process_time_status,
+                    TelemetryEnum.MOTOR_STATUS: self.process_motor_status
                 }
 
 
     def process_data(self, data):
         if len(data) > 0:
-            print("LENGTH: ", len(data))
             if self.is_valid_tlm(data):
                 self.handle_tlm(data) 
 
             else:
                 print("TelemetryProcessor: Received invalid data")
 
-            
-
         else:
             print("TelemetryProcessor: Received invalid data length")
+
+    def process_motor_status(self, data):
+        data_len = data[DATA_LENGTH_IDX]
+        tlm_id = data[DATA_TLM_ID_IDX]
+
+        print("TelemetryProcessor: Received TLM w/ ID of: ", tlm_id)
+
+        MotorStatus(data[DATA_TLM_ID_IDX + 1: -1])
 
 
     def process_gpio_status(self, data):
@@ -101,6 +124,7 @@ class TelemetryProcessor:
         print("TelemetryProcessor: Received TLM w/ ID of: ", tlm_id)
         
         GPIOStatus(data[DATA_TLM_ID_IDX + 1: -1])
+
 
     def process_time_status(self, data):
         tlm_id = data[DATA_TLM_ID_IDX]
@@ -121,6 +145,4 @@ class TelemetryProcessor:
             return True
         except ValueError:
             return False
-
-
 
