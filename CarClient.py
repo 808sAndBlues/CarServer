@@ -47,7 +47,7 @@ class InputProcessor(threading.Thread):
     
     
     def send_data(self, key):
-        data = -1
+        data = 99
 
         if key == "up":
             data = 0
