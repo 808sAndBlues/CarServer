@@ -5,9 +5,6 @@ import os
 
 from SignalHandler import SignalHandler
 from TelemetryProcessor import TelemetryProcessor
-from InputProcessor import InputProcessor
-from sshkeyboard import listen_keyboard, stop_listening
-
 
 class Server(threading.Thread):
     def __init__(self, port: int, address: str, sig_handler: SignalHandler):
@@ -19,12 +16,9 @@ class Server(threading.Thread):
         self._epoll: select.epoll = select.epoll()
         self._tlm_processor: TelemetryProcessor = TelemetryProcessor()
         self._sig_handler: SignalHandler = sig_handler
-#        self._input_processor: InputProcessor = InputProcessor(sig_handler)
 
         self.init_sock(self._port, self._addr)
         self.init_epoll()
-        
- #       self._input_processor.start()
 
 
     def init_epoll(self):
@@ -48,7 +42,6 @@ class Server(threading.Thread):
 
             self._tlm_processor.process_data(data)
 
-            print("Server: Sent byte count = ", self._sock.sendto(bytes(1), addr))
 
 
         elif fileno == self._sig_handler.get_fileno():
@@ -65,6 +58,4 @@ class Server(threading.Thread):
         while not self._sig_handler.get_shutdown():
             events = self._epoll.poll()
             self.evaluate_events(events)
-
-        stop_listening()
 
